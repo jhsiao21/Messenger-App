@@ -8,6 +8,8 @@
 import UIKit
 import FirebaseAuth
 import FBSDKLoginKit
+import GoogleSignIn
+import FirebaseCore
 
 class LoginViewController: UIViewController {
     
@@ -74,9 +76,20 @@ class LoginViewController: UIViewController {
         button.permissions = ["public_profile", "email"]
         return button
     }()
+    
+    private let googleLoginButton = GIDSignInButton()
+    
+//    private var loginObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //現今版本的google登入已經可以寫在viewController，不像以前寫在AppDelegate，所以不用Notification
+//        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification, object: nil, queue: .main) { [weak self] _ in
+//            guard let strongSelf = self else { return }
+//            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+//        }
+        
         title = "Login"
         view.backgroundColor = .white
         
@@ -89,9 +102,14 @@ class LoginViewController: UIViewController {
                               action: #selector(loginButtonTapped),
                               for: .touchUpInside)
         
+        googleLoginButton.addTarget(self,
+                                    action: #selector(googleLoginButtonTapped),
+                                    for: .touchUpInside)
+        
         emailField.delegate = self
         passwordField.delegate = self
         facebookLoginButton.delegate = self
+       
         
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
@@ -100,6 +118,13 @@ class LoginViewController: UIViewController {
         scrollView.addSubview(loginButton)
                 
         scrollView.addSubview(facebookLoginButton)
+        scrollView.addSubview(googleLoginButton)
+    }
+    
+    deinit {
+//        if let observer = loginObserver {
+//            NotificationCenter.default.removeObserver(observer)
+//        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -127,7 +152,11 @@ class LoginViewController: UIViewController {
                                   y: loginButton.bottom + 10,
                                   width: scrollView.width - 60,
                                   height: 52)
-//        facebookLoginButton.frame.origin.y = loginButton.bottom + 20
+
+        googleLoginButton.frame = CGRect(x: 30,
+                                  y: facebookLoginButton.bottom + 10,
+                                  width: scrollView.width - 60,
+                                  height: 52)
     }
     
     @objc private func loginButtonTapped() {
@@ -151,6 +180,63 @@ class LoginViewController: UIViewController {
             let user = result.user
             print("Logged In User:\(user)")
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    @objc private func googleLoginButtonTapped() {
+        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+
+        // Create Google Sign In configuration object.
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        // Start the sign in flow!
+        GIDSignIn.sharedInstance.signIn(withPresenting: self) { [unowned self] result, error in
+          guard error == nil else {
+              print(error?.localizedDescription)
+              return
+          }
+
+            //unwrap the token from Google
+            guard let user = result?.user,
+                  let idToken = user.idToken?.tokenString
+            else {
+                print("User failed to log in with google")
+                return
+            }
+            
+            print("Did sign in with Google: \(user)")
+            
+            guard let email = user.profile?.email,
+                  let firstName = user.profile?.givenName,
+                  let lastName = user.profile?.familyName else { return }
+            
+            //use DatabaseManager object to check if the email exists in the database that we got from Facebook
+            DatabaseManager.shared.userExists(with: email) { exists in
+                //if it doesn't exist, insert it to the database
+                if !exists {
+                    DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName,
+                                                                        lastName: lastName,
+                                                                        emailAddress: email))
+                }
+            }
+            
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken,
+                                                           accessToken: user.accessToken.tokenString)
+            
+            //利用credential登入Firebase
+            FirebaseAuth.Auth.auth().signIn(with: credential) { [weak self] authResult, error in
+                guard let strongSelf = self else { return }
+                guard authResult != nil, error == nil else {
+                    if let error = error {
+                        print("Google credential login failed - \(error)")
+                    }
+                    return
+                }
+                
+                print("Successfully logged user in")
+                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+            }
         }
     }
     
@@ -188,6 +274,7 @@ extension LoginViewController : UITextFieldDelegate {
     }
 }
 
+//MARK: - FBLoginButton delegate
 extension LoginViewController : LoginButtonDelegate {
     func loginButtonDidLogOut(_ loginButton: FBSDKLoginKit.FBLoginButton) {
         // no operation
@@ -256,8 +343,5 @@ extension LoginViewController : LoginButtonDelegate {
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
             }
         }
-        
-        
-        
     }
 }
