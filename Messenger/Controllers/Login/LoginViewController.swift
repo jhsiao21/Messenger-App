@@ -216,7 +216,7 @@ extension LoginViewController : LoginButtonDelegate {
 //            print("\(result)") //["id": 10221311206604346, "name": Logan Hsiao, "email": jhsiao1121@gmail.com]
             
             //unwrap data
-            guard let userName = result["email"] as? String,
+            guard let userName = result["name"] as? String,
                   let email = result["email"] as? String else {
                 print("Failed to get email and name from fb result")
                 return
