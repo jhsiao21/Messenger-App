@@ -18,11 +18,11 @@ class MainTabBarViewController: UITabBarController {
         let Profile = UINavigationController(rootViewController: ProfileViewController())
                 
         Chats.tabBarItem.image = UIImage(systemName: "ellipsis.message")?.withRenderingMode(.automatic)
-        Chats.title = "Chats"
+        Chats.navigationItem.title = "Chats"
         Chats.navigationController?.navigationBar.prefersLargeTitles = true
         
         Profile.tabBarItem.image = UIImage(systemName: "person.crop.circle")?.withRenderingMode(.automatic)
-        Profile.title = "Profile"
+        Profile.navigationItem.title = "Profile"
         Chats.navigationController?.navigationBar.prefersLargeTitles = true
         
 

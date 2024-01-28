@@ -25,7 +25,7 @@ class RegisterViewController: UIViewController {
         imageView.tintColor = .gray
         imageView.contentMode = .scaleAspectFill
         imageView.layer.masksToBounds = true
-//        imageView.layer.cornerRadius = imageView.frame.size.width / 2
+        //        imageView.layer.cornerRadius = imageView.frame.size.width / 2
         imageView.layer.borderWidth = 2
         imageView.layer.borderColor = UIColor.lightGray.cgColor
         return imageView
@@ -119,8 +119,8 @@ class RegisterViewController: UIViewController {
                                                             action: #selector(didTapRegister))
         
         registerButton.addTarget(self,
-                              action: #selector(registerButtonTapped),
-                              for: .touchUpInside)
+                                 action: #selector(registerButtonTapped),
+                                 for: .touchUpInside)
         
         emailField.delegate = self
         passwordField.delegate = self
@@ -141,7 +141,7 @@ class RegisterViewController: UIViewController {
     }
     
     @objc private func didTapChangeProfilePic() {
-//        print("Change pic called")
+        //        print("Change pic called")
         presentPhotoActionSheet()
     }
     
@@ -157,13 +157,13 @@ class RegisterViewController: UIViewController {
         imageView.layer.cornerRadius = imageView.width / 2
         
         firstNameField.frame = CGRect(x: 30,
-                                  y: imageView.bottom + 10,
-                                  width: scrollView.width - 60,
-                                  height: 52)
+                                      y: imageView.bottom + 10,
+                                      width: scrollView.width - 60,
+                                      height: 52)
         lastNameField.frame = CGRect(x: 30,
-                                  y: firstNameField.bottom + 10,
-                                  width: scrollView.width - 60,
-                                  height: 52)
+                                     y: firstNameField.bottom + 10,
+                                     width: scrollView.width - 60,
+                                     height: 52)
         emailField.frame = CGRect(x: 30,
                                   y: lastNameField.bottom + 10,
                                   width: scrollView.width - 60,
@@ -173,9 +173,9 @@ class RegisterViewController: UIViewController {
                                      width: scrollView.width - 60,
                                      height: 52)
         registerButton.frame = CGRect(x: 30,
-                                   y: passwordField.bottom + 10,
-                                   width: scrollView.width - 60,
-                                   height: 52)
+                                      y: passwordField.bottom + 10,
+                                      width: scrollView.width - 60,
+                                      height: 52)
     }
     
     @objc private func registerButtonTapped() {
@@ -194,7 +194,7 @@ class RegisterViewController: UIViewController {
               !email.isEmpty,
               !password.isEmpty,
               password.count >= 6 else {
-                alertUserLoginError()
+            alertUserLoginError()
             return
         }
         
@@ -220,10 +220,29 @@ class RegisterViewController: UIViewController {
                     print("Error creating user")
                     return
                 }
-                
-                DatabaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName,
-                                                                    lastName: lastName,
-                                                                    emailAddress: email))
+                let chatUser = ChatAppUser(firstName: firstName,
+                                           lastName: lastName,
+                                           emailAddress: email)
+                DatabaseManager.shared.insertUser(with: chatUser) { success in
+                    if success {
+                        //upload image
+                        guard let image = strongSelf.imageView.image,
+                              let data = image.pngData() else {
+                            return
+                        }
+                        let filename = chatUser.profilePictureFileName
+                        StorageManager.shared.uploadProfilePicture(with: data, fileName: filename) { result in
+                            switch result {
+                                
+                            case .success(let downloadUrl):
+                                UserDefaults.standard.set(downloadUrl, forKey: "profile_picture_url")   //save to disk
+                                print(downloadUrl)
+                            case .failure(let error):
+                                print("Storage manager error: \(error)")
+                            }
+                        }
+                    }
+                }
                 
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
             }
@@ -273,17 +292,17 @@ extension RegisterViewController: UIImagePickerControllerDelegate, UINavigationC
         actionSheet.addAction(UIAlertAction(title: "Cancel",
                                             style: .cancel,
                                             handler: nil))
-                              
+        
         actionSheet.addAction(UIAlertAction(title: "Take Photo",
                                             style: .default,
                                             handler: { [weak self] _ in
-                                            self?.presentCamera()
+            self?.presentCamera()
         }))
         
         actionSheet.addAction(UIAlertAction(title: "Chose Photo",
                                             style: .default,
                                             handler: { [weak self] _ in
-                                            self?.presentPhotoPicker()
+            self?.presentPhotoPicker()
         }))
         
         present(actionSheet, animated: true)
