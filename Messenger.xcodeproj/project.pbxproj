@@ -23,6 +23,7 @@
 		02D22A392B62A1D1005898B7 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A382B62A1D1005898B7 /* DatabaseManager.swift */; };
 		02D22A3C2B635AB0005898B7 /* MainTabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A3B2B635AB0005898B7 /* MainTabBarViewController.swift */; };
 		02D22A3E2B63DE5E005898B7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 02D22A3D2B63DE5D005898B7 /* GoogleService-Info.plist */; };
+		02D22A402B6642BF005898B7 /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A3F2B6642BF005898B7 /* ChatViewController.swift */; };
 		39631E06CF2F82DACECB8E6B /* Pods_Messenger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2987B2119D86EEE604008ACF /* Pods_Messenger.framework */; };
 /* End PBXBuildFile section */
 
@@ -45,6 +46,7 @@
 		02D22A382B62A1D1005898B7 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
 		02D22A3B2B635AB0005898B7 /* MainTabBarViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainTabBarViewController.swift; sourceTree = "<group>"; };
 		02D22A3D2B63DE5D005898B7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Desktop/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		02D22A3F2B6642BF005898B7 /* ChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		2987B2119D86EEE604008ACF /* Pods_Messenger.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Messenger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1AF01F472C6F356220943C7 /* Pods-Messenger.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Messenger.debug.xcconfig"; path = "Target Support Files/Pods-Messenger/Pods-Messenger.debug.xcconfig"; sourceTree = "<group>"; };
 		AF78DBC6F75047F6D829570F /* Pods-Messenger.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Messenger.release.xcconfig"; path = "Target Support Files/Pods-Messenger/Pods-Messenger.release.xcconfig"; sourceTree = "<group>"; };
@@ -107,12 +109,13 @@
 		027ED0592B6200B300F49DF4 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				027ED06B2B62045000F49DF4 /* Login */,
 				027ED0492B61FDF900F49DF4 /* ConversationsViewController.swift */,
+				027ED06B2B62045000F49DF4 /* Login */,
 				027ED0632B62034500F49DF4 /* PhotoViewerViewController.swift */,
 				027ED0652B62035400F49DF4 /* VideoPlayerViewController.swift */,
 				027ED0672B62039F00F49DF4 /* NewConversationViewController.swift */,
 				027ED0692B6203B200F49DF4 /* ProfileViewController.swift */,
+				02D22A3F2B6642BF005898B7 /* ChatViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -310,6 +313,7 @@
 				027ED06D2B6209B300F49DF4 /* Extensions.swift in Sources */,
 				027ED0462B61FDF900F49DF4 /* AppDelegate.swift in Sources */,
 				027ED06A2B6203B200F49DF4 /* ProfileViewController.swift in Sources */,
+				02D22A402B6642BF005898B7 /* ChatViewController.swift in Sources */,
 				02D22A3C2B635AB0005898B7 /* MainTabBarViewController.swift in Sources */,
 				027ED0482B61FDF900F49DF4 /* SceneDelegate.swift in Sources */,
 				027ED0642B62034500F49DF4 /* PhotoViewerViewController.swift in Sources */,
