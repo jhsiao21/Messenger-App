@@ -11,18 +11,24 @@
 			</array>
 		</dict>
 		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.googleusercontent.apps.318450880743-7nd28clqjno51lapm73vcls4rfgvg4td</string>
 			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Please allow access to take a profile picture</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Please allow access to select a photo for your profile.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Please allow access to send audio and video messages.</string>
 	<key>FacebookAppID</key>
 	<string>718468540383079</string>
 	<key>FacebookClientToken</key>
-	<string>CLIENT-TOKEN</string>
+	<string>2e06b77069fd191b97eb47a4357ad70c</string>
 	<key>FacebookDisplayName</key>
 	<string>My Messenger</string>
 	<key>LSApplicationQueriesSchemes</key>

@@ -14,6 +14,12 @@ final class DatabaseManager {
     
     private let database = Database.database().reference()
     
+    static func safeEmail(emailAddress: String) -> String {
+        var safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
+//        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
+        return safeEmail
+    }
+    
 }
 
 //MARK: - Account Management
@@ -38,6 +44,7 @@ extension DatabaseManager {
     
     //Inserts new user to database
     public func insertUser(with user: ChatAppUser, completion: @escaping (Bool) -> Void) {
+        //once we insert a new user we make the route entry and then we make sure it didn't fail
         database.child(user.safeEmail).setValue([
             "first_name": user.firstName,
             "last_name": user.lastName
@@ -48,8 +55,80 @@ extension DatabaseManager {
                 return
             }
             
-            completion(true)
+            
+            /*
+             users => [
+                [
+                    "name":
+                    "safe_email":
+                ],
+                [
+                     "name":
+                     "safe_email":
+                ]
+             ]
+             */
+            
+            //add it to array of users
+            
+            self.database.child("users").observeSingleEvent(of: .value) { snapshot in
+                //check first if that collection exists
+                if var usersCollection = snapshot.value as? [[String : String]] {   //if it does we can append
+                    //append to user dictionary
+                    let newElement = [
+                        [
+                            "name": "\(user.firstName) \(user.lastName)",
+                            "email": user.safeEmail
+                        ]
+                    ]
+                    usersCollection.append(contentsOf: newElement)  //the prefix of usersCollection is var, because we want it to be mutable so we can append more contents
+                    
+                    self.database.child("users").setValue(usersCollection) { error, _ in
+                        guard error == nil else {
+                            completion(false)
+                            return
+                        }
+                        
+                        completion(true)
+                    }
+                }
+                else {                                                              //if it doesn't we need to create it
+                    //create that array
+                    let newCollection: [[String: String]] = [
+                        [
+                            "name": "\(user.firstName) \(user.lastName)",
+                            "email": user.safeEmail
+                        ]
+                    ]
+                    
+                    self.database.child("users").setValue(newCollection) { error, _ in
+                        guard error == nil else {
+                            completion(false)
+                            return
+                        }
+                        
+                        completion(true)
+                    }
+                }
+            }
+            
+//            completion(true)
         }
+    }
+    
+    public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
+        database.child("users").observeSingleEvent(of: .value) { snapshot in
+            guard let value = snapshot.value as? [[String: String]] else {
+                completion(.failure(DatabaseError.failedToFetch))
+                return
+            }
+            
+            completion(.success(value))
+        }
+    }
+    
+    public enum DatabaseError: Error {
+        case failedToFetch
     }
 }
 
@@ -61,7 +140,7 @@ struct ChatAppUser {
     
     var safeEmail: String {
         var safeEmail = emailAddress.replacingOccurrences(of: ".", with: "-")
-        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
+//        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
         return safeEmail
     }
     

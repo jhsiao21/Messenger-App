@@ -188,6 +188,9 @@ class LoginViewController: UIViewController {
             }
             
             let user = result.user
+            
+            UserDefaults.standard.set(email, forKey: "email")   //for displaying picture
+            
             print("Logged In User:\(user)")
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
         }
@@ -221,6 +224,8 @@ class LoginViewController: UIViewController {
                   let firstName = user.profile?.givenName,
                   let lastName = user.profile?.familyName,
                   let hasImage = user.profile?.hasImage else { return }
+            
+            UserDefaults.standard.set(email, forKey: "email")   //for displaying picture
             
             //use DatabaseManager object to check if the email exists in the database that we got from Facebook
             DatabaseManager.shared.userExists(with: email) { exists in
@@ -369,6 +374,8 @@ extension LoginViewController : LoginButtonDelegate {
                 print("Failed to get email and name from fb result")
                 return
             }
+            
+            UserDefaults.standard.set(email, forKey: "email")   //for displaying picture
                         
             //use DatabaseManager object to check if the email exists in the database that we got from Facebook
             DatabaseManager.shared.userExists(with: email) { exists in

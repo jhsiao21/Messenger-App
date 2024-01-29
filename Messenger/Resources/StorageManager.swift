@@ -15,7 +15,7 @@ final class StorageManager {
     private let storage = Storage.storage().reference()
     
     /*
-     /images/logan-gmail-com_profile_picture.png
+     /images/logan@gmail-com_profile_picture.png
      */
     
     public typealias UploadPictureCompletion = (Result<String, Error>) -> Void
@@ -57,6 +57,19 @@ final class StorageManager {
                 print("download url returned: \(urlString)")
                 completion(.success(urlString))
             })
+        }
+    }
+    
+    public func downloadURL(for path: String, completion: @escaping (Result<URL, Error>) -> Void) {
+        let reference = storage.child(path)
+        
+        reference.downloadURL { url, error in
+            guard let url = url, error == nil else {
+                completion(.failure(StorageErrors.failedToGetDownloadUrl))
+                return
+            }
+            
+            completion(.success(url))
         }
     }
     
