@@ -101,17 +101,16 @@ extension DatabaseManager {
                         ]
                     ]
                     
+                    //建立users節點
                     self.database.child("users").setValue(newCollection) { error, _ in
                         guard error == nil else {
                             completion(false)
                             return
                         }
-                        
                         completion(true)
                     }
                 }
             }
-            
 //            completion(true)
         }
     }
@@ -165,14 +164,14 @@ extension DatabaseManager {
      */
     
     /// Creates a new conversation with target user email and first message sent
-    public func createNewConversation(with otherUserEmail: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
+    public func createNewConversation(with otherUserEmail: String, name: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
         guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
             return
         }
         
         let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
         let ref = database.child("\(safeEmail)") //以safeEmail做節點
-        ref.observeSingleEvent(of: .value) { snapshot in
+        ref.observeSingleEvent(of: .value) { snapshot  in
             guard var userNode = snapshot.value as? [String: Any] else {
                 completion(false)
                 print("user not found")
@@ -213,6 +212,7 @@ extension DatabaseManager {
             
             let newConversationData: [String: Any] = [
                 "id": conversationId,
+                "name": name,
                 "other_user_email": otherUserEmail,
                 "latest_message": [
                     "date": dateString,
@@ -233,7 +233,8 @@ extension DatabaseManager {
                         return
                     }
 //                    completion(true)
-                    self?.finishCreatingConversation(conversationID: conversationId,
+                    self?.finishCreatingConversation(name: name,
+                                                     conversationID: conversationId,
                                                      firstMessage: firstMessage,
                                                      completion: completion)
                 }
@@ -251,7 +252,8 @@ extension DatabaseManager {
                         return
                     }
 //                    completion(true)
-                    self?.finishCreatingConversation(conversationID: conversationId,
+                    self?.finishCreatingConversation(name: name,
+                                                     conversationID: conversationId,
                                                      firstMessage: firstMessage,
                                                      completion: completion)
                 }
@@ -259,7 +261,7 @@ extension DatabaseManager {
         }
     }
     
-    private func finishCreatingConversation(conversationID: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
+    private func finishCreatingConversation(name: String, conversationID: String, firstMessage: Message, completion: @escaping (Bool) -> Void) {
                 
         let messageDate = firstMessage.sentDate
         let dateString = ChatViewController.dateFormatter.string(from: messageDate)
@@ -303,7 +305,8 @@ extension DatabaseManager {
             "content": message,
             "date": dateString,
             "sender_email": currentUserEmail,
-            "isRead": false
+            "isRead": false,
+            "name": name
         ]
         
         let value: [String: Any] = [
@@ -336,6 +339,40 @@ extension DatabaseManager {
     }
     
     /// Fetches and returns all conversations for the user with passed in email
+    public func getAllConversations(for email: String, completion: @escaping (Result<[Conversation], Error>) -> Void) {
+        //observe方法通常用於設置一個持續的監聽器，以便當數據發生變化時接收更新。這意味著每當匹配的數據發生改變時，監聽器都會被觸發
+        database.child("\(email)/conversations").observe(.value) { snapshot in
+            guard let value = snapshot.value as? [[String: Any]] else {
+                completion(.failure(DatabaseError.failedToFetch))
+                return
+            }
+            
+            let conversations: [Conversation] = value.compactMap{ dictionary in
+                guard let conversationId = dictionary["id"] as? String,
+                      let name = dictionary["name"] as? String,
+                      let otherUserEmail = dictionary["other_user_email"] as? String,
+                      let latestMessage = dictionary["latest_message"] as? [String: Any],
+                      let date = latestMessage["date"] as? String,
+                      let isRead = latestMessage["is_read"] as? Bool,
+                      let message = latestMessage["message"] as? String else {
+                    return nil
+                }
+                
+                let latestMessageObject = LatestMessage(date: date,
+                                                        text: message,
+                                                        isRead: isRead)
+                
+                return Conversation(id: conversationId,
+                                    name: name,
+                                    otherUserEmail: otherUserEmail,
+                                    latestMessage: latestMessageObject)
+            }
+            
+            completion(.success(conversations))
+        }
+    }
+    
+    /// Gets all messages for a given conversation
     public func getAllMessagesForConversation(with id: String, completion: @escaping (Result<String, Error>) -> Void) {
         
     }

@@ -147,7 +147,9 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
                                   messageId: messageId,
                                   sentDate: Date(),
                                   kind: .text(text))
-            DatabaseManager.shared.createNewConversation(with: otherUserEmail, firstMessage: message) { success in
+            
+            //title因為有設定為name(聊天對象)
+            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { success in
                 if success {
                     print("message sent")
                 }
