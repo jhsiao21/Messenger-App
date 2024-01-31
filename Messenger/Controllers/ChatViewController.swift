@@ -72,23 +72,48 @@ class ChatViewController: MessagesViewController {
     }()
 
     public let otherUserEmail: String
+    private let conversationId: String?
     public var isNewConversation = false
     
     private var messages = [Message]()
     
     private var selfSender: Sender? {
-        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String,
+              let name = UserDefaults.standard.value(forKey: "name") as? String else {
             return nil
         }
         
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        
         return Sender(photoURL: "",
-               senderId: email,
-               displayName: "Joe Smith")
+               senderId: safeEmail,
+               displayName: name)
     }
     
-    init(with email: String) {
+    private func listeningForMessages(id: String) {
+        DatabaseManager.shared.getAllMessagesForConversation(with: id) { [weak self] result in
+            switch result {
+            case .success(let messages):
+                guard !messages.isEmpty else {
+                    return
+                }
+                self?.messages = messages
+                DispatchQueue.main.async {
+                    self?.messagesCollectionView.reloadDataAndKeepOffset()
+                }
+            case .failure(let error):
+                print("Failed to get messages: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    init(with email: String, id: String?) {
         self.otherUserEmail = email
+        self.conversationId = id
         super.init(nibName: nil, bundle: nil)
+        if let conversationId = conversationId {
+            listeningForMessages(id: conversationId)
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -111,13 +136,14 @@ class ChatViewController: MessagesViewController {
 }
 
 extension ChatViewController : MessagesDataSource, MessagesLayoutDelegate, MessagesDisplayDelegate {
+    
+    //決定文字框出現在左邊(對方)或右邊(我)
     func currentSender() -> MessageKit.SenderType {
         if let sender = selfSender {
             return sender
         }
         
         fatalError("Self Sender is nil, email should be cached")
-        return Sender(photoURL: "", senderId: "1", displayName: "")
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessageKit.MessagesCollectionView) -> MessageKit.MessageType {
@@ -140,18 +166,19 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         
         print("Sending: \(text)")
         
+        let message = Message(sender: selfSender,
+                              messageId: messageId,
+                              sentDate: Date(),
+                              kind: .text(text))
+        
         //Send Message
         if isNewConversation {
             //create conversation in database
-            let message = Message(sender: selfSender,
-                                  messageId: messageId,
-                                  sentDate: Date(),
-                                  kind: .text(text))
-            
             //title因為有設定為name(聊天對象)
-            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { success in
+            DatabaseManager.shared.createNewConversation(with: otherUserEmail, name: self.title ?? "User", firstMessage: message) { [weak self] success in
                 if success {
                     print("message sent")
+                    self?.isNewConversation = false
                 }
                 else {
                     print("failed to send")
@@ -160,7 +187,18 @@ extension ChatViewController: InputBarAccessoryViewDelegate {
         }
         else {
             //append to existing conversation data
+            guard let conversationId = self.conversationId, let name = self.title else {
+                return
+            }
             
+            DatabaseManager.shared.sendMessage(to: conversationId, otherUserEmail: otherUserEmail, name: name, newMessage: message) { success in
+                if success {
+                    print("message sent")
+                }
+                else {
+                    print("failed to send")
+                }
+            }
         }
     }
     

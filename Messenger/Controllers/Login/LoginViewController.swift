@@ -189,7 +189,24 @@ class LoginViewController: UIViewController {
             
             let user = result.user
             
-            UserDefaults.standard.set(email, forKey: "email")   //for displaying picture
+            //用email取得用戶名字
+            let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+            DatabaseManager.shared.getDataFor(path: safeEmail) { result in
+                switch result {
+                case .success(let data):
+                    guard let userData = data as? [String: Any],
+                          let firstName = userData["first_name"] as? String,
+                          let lastName = userData["last_name"] as? String else {
+                        return
+                    }
+                    UserDefaults.standard.set("\(firstName) \(lastName)", forKey: "name")
+                case .failure(let error):
+                    print("Failed to read data with error: \(error.localizedDescription)")
+                }
+            }
+            
+            UserDefaults.standard.set(email, forKey: "email")
+//            UserDefaults.standard.set("\(firstName) \(lastName)", forKey: "name")
             
             print("Logged In User:\(user)")
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
@@ -225,7 +242,8 @@ class LoginViewController: UIViewController {
                   let lastName = user.profile?.familyName,
                   let hasImage = user.profile?.hasImage else { return }
             
-            UserDefaults.standard.set(email, forKey: "email")   //for displaying picture
+            UserDefaults.standard.set(email, forKey: "email")
+            UserDefaults.standard.set("\(firstName) \(lastName)", forKey: "name")
             
             //use DatabaseManager object to check if the email exists in the database that we got from Facebook
             DatabaseManager.shared.userExists(with: email) { exists in
@@ -375,7 +393,8 @@ extension LoginViewController : LoginButtonDelegate {
                 return
             }
             
-            UserDefaults.standard.set(email, forKey: "email")   //for displaying picture
+            UserDefaults.standard.set(email, forKey: "email")
+            UserDefaults.standard.set("\(firstName) \(lastName)", forKey: "name")
                         
             //use DatabaseManager object to check if the email exists in the database that we got from Facebook
             DatabaseManager.shared.userExists(with: email) { exists in
