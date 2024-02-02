@@ -12,7 +12,7 @@ class MainTabBarViewController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = UIColor.systemBackground
                 
         let Chats = UINavigationController(rootViewController: ConversationsViewController())
         let Profile = UINavigationController(rootViewController: ProfileViewController())
@@ -26,8 +26,8 @@ class MainTabBarViewController: UITabBarController {
         Chats.navigationController?.navigationBar.prefersLargeTitles = true
         
 
-        tabBar.backgroundColor = UIColor.white
-        tabBar.tintColor = .black
+        tabBar.backgroundColor = UIColor.systemBackground
+        tabBar.tintColor = .secondarySystemBackground
         tabBar.isTranslucent = true
         tabBar.shadowImage = UIImage()
         setViewControllers([Chats, Profile], animated: true)

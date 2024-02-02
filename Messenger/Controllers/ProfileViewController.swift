@@ -58,7 +58,7 @@ class ProfileViewController: UIViewController {
                                                   height: 150))
         
         imageView.contentMode = .scaleAspectFill
-        imageView.backgroundColor = .white
+        imageView.backgroundColor = .systemBackground
         imageView.layer.borderColor = UIColor.white.cgColor
         imageView.layer.borderWidth = 3
         imageView.layer.cornerRadius = imageView.width / 2

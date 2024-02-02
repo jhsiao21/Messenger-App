@@ -41,7 +41,7 @@ class LoginViewController: UIViewController {
         //leftView可以指定左邊的view內容，這裡指定一個空的UIView，寬度５
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.backgroundColor = .white
+        field.backgroundColor = .secondarySystemBackground
         return field
     }()
     
@@ -58,7 +58,7 @@ class LoginViewController: UIViewController {
         //leftView可以指定左邊的view內容，這裡指定一個空的UIView，寬度５
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.backgroundColor = .white
+        field.backgroundColor = .secondarySystemBackground
         field.isSecureTextEntry = true
         return field
     }()
@@ -87,14 +87,13 @@ class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //現今版本的google登入已經可以寫在viewController，不像以前寫在AppDelegate，所以不用Notification
 //        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification, object: nil, queue: .main) { [weak self] _ in
 //            guard let strongSelf = self else { return }
 //            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
 //        }
         
         title = "Login"
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register",
                                                             style: .done,
@@ -235,7 +234,7 @@ class LoginViewController: UIViewController {
                 return
             }
             
-            print("Did sign in with Google: \(user.self)")
+            print("Did sign in with Google: \(user)")
             
             guard let email = user.profile?.email,
                   let firstName = user.profile?.givenName,

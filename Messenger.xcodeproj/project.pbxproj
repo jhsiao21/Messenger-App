@@ -26,6 +26,8 @@
 		02D22A402B6642BF005898B7 /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A3F2B6642BF005898B7 /* ChatViewController.swift */; };
 		02D22A422B666D70005898B7 /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A412B666D70005898B7 /* StorageManager.swift */; };
 		02D22A462B692A6C005898B7 /* ConversationTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A452B692A6C005898B7 /* ConversationTableViewCell.swift */; };
+		02D22A4A2B6B868E005898B7 /* NewConversationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A492B6B868E005898B7 /* NewConversationCell.swift */; };
+		02D22A4C2B6D1A61005898B7 /* LocationPickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D22A4B2B6D1A61005898B7 /* LocationPickerViewController.swift */; };
 		39631E06CF2F82DACECB8E6B /* Pods_Messenger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2987B2119D86EEE604008ACF /* Pods_Messenger.framework */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +53,8 @@
 		02D22A3F2B6642BF005898B7 /* ChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
 		02D22A412B666D70005898B7 /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
 		02D22A452B692A6C005898B7 /* ConversationTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationTableViewCell.swift; sourceTree = "<group>"; };
+		02D22A492B6B868E005898B7 /* NewConversationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewConversationCell.swift; sourceTree = "<group>"; };
+		02D22A4B2B6D1A61005898B7 /* LocationPickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationPickerViewController.swift; sourceTree = "<group>"; };
 		2987B2119D86EEE604008ACF /* Pods_Messenger.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Messenger.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1AF01F472C6F356220943C7 /* Pods-Messenger.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Messenger.debug.xcconfig"; path = "Target Support Files/Pods-Messenger/Pods-Messenger.debug.xcconfig"; sourceTree = "<group>"; };
 		AF78DBC6F75047F6D829570F /* Pods-Messenger.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Messenger.release.xcconfig"; path = "Target Support Files/Pods-Messenger/Pods-Messenger.release.xcconfig"; sourceTree = "<group>"; };
@@ -120,6 +124,7 @@
 				027ED0672B62039F00F49DF4 /* NewConversationViewController.swift */,
 				027ED0692B6203B200F49DF4 /* ProfileViewController.swift */,
 				02D22A3F2B6642BF005898B7 /* ChatViewController.swift */,
+				02D22A4B2B6D1A61005898B7 /* LocationPickerViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -130,6 +135,7 @@
 				027ED04E2B61FDFA00F49DF4 /* Assets.xcassets */,
 				027ED05E2B62013900F49DF4 /* Storyboards */,
 				02D22A452B692A6C005898B7 /* ConversationTableViewCell.swift */,
+				02D22A492B6B868E005898B7 /* NewConversationCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -313,12 +319,14 @@
 				027ED0602B6202DA00F49DF4 /* LoginViewController.swift in Sources */,
 				02D22A392B62A1D1005898B7 /* DatabaseManager.swift in Sources */,
 				027ED0622B62033100F49DF4 /* RegisterViewController.swift in Sources */,
+				02D22A4C2B6D1A61005898B7 /* LocationPickerViewController.swift in Sources */,
 				02D22A422B666D70005898B7 /* StorageManager.swift in Sources */,
 				027ED0682B62039F00F49DF4 /* NewConversationViewController.swift in Sources */,
 				027ED04A2B61FDF900F49DF4 /* ConversationsViewController.swift in Sources */,
 				027ED0662B62035400F49DF4 /* VideoPlayerViewController.swift in Sources */,
 				027ED06D2B6209B300F49DF4 /* Extensions.swift in Sources */,
 				027ED0462B61FDF900F49DF4 /* AppDelegate.swift in Sources */,
+				02D22A4A2B6B868E005898B7 /* NewConversationCell.swift in Sources */,
 				027ED06A2B6203B200F49DF4 /* ProfileViewController.swift in Sources */,
 				02D22A402B6642BF005898B7 /* ChatViewController.swift in Sources */,
 				02D22A3C2B635AB0005898B7 /* MainTabBarViewController.swift in Sources */,
