@@ -9,20 +9,7 @@ import UIKit
 import FirebaseAuth
 import JGProgressHUD
 
-struct Conversation {
-    let id: String
-    let name: String
-    let otherUserEmail: String
-    let latestMessage: LatestMessage
-}
-
-struct LatestMessage {
-    let date: String
-    let text: String
-    let isRead: Bool
-}
-
-class ConversationsViewController: UIViewController {
+final class ConversationsViewController: UIViewController {
     
     private let spinner = JGProgressHUD(style: .dark)
     
@@ -55,14 +42,7 @@ class ConversationsViewController: UIViewController {
         view.addSubview(tableView)
         view.addSubview(noConversationsLabel)
         setupTableView()
-        fetchConversations()
         startListeningForConversations()
-        
-        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification, object: nil, queue: .main, using: { [weak self] _ in
-            guard let strongSelf = self else { return }
-            
-            strongSelf.startListeningForConversations()
-        })
     }
     
     private func startListeningForConversations() {
@@ -82,13 +62,21 @@ class ConversationsViewController: UIViewController {
             case .success(let conversations):
                 
                 guard !conversations.isEmpty else {
+                    // there's no conversations, hide tableview and show label
+                    self?.tableView.isHidden = true
+                    self?.noConversationsLabel.isHidden = false
                     return
                 }
+                self?.tableView.isHidden = false
+                self?.noConversationsLabel.isHidden = true
                 self?.conversations = conversations
                 DispatchQueue.main.async {
                     self?.tableView.reloadData()
                 }
             case .failure(let error):
+                // if not able to get conversations, hide tableview and show label
+                self?.tableView.isHidden = true
+                self?.noConversationsLabel.isHidden = false
                 print("Failed to get convos: \(error.localizedDescription)")
             }
         }
@@ -149,12 +137,16 @@ class ConversationsViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.frame = view.bounds
+        noConversationsLabel.frame = CGRect(x: 10,
+                                            y: (view.height - 100) / 2,
+                                            width: view.width - 20,
+                                            height: 100)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
                 
-        validateAuth()
+        validateAuth() //Register後跳回此視圖時，會再次觸發viewDidAppear來執行這行
     }
     
     private func validateAuth() {
@@ -169,10 +161,6 @@ class ConversationsViewController: UIViewController {
     private func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
-    }
-
-    private func fetchConversations() {
-        tableView.isHidden = false
     }
 }
 
@@ -219,11 +207,13 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
             let conversationId = conversations[indexPath.row].id
             
             tableView.beginUpdates()
+            conversations.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .left)
             
-            DatabaseManager.shared.deleteConversation(conversationId: conversationId) { [weak self] success in
-                if success {
-                    self?.conversations.remove(at: indexPath.row)
-                    self?.tableView.deleteRows(at: [indexPath], with: .left)
+            DatabaseManager.shared.deleteConversation(conversationId: conversationId) { success in
+                if !success { //沒有網路時就會失敗
+                    /// add model and row back and show error alert
+                    print("Failed to delete conversation with ID: \(conversationId)")
                 }
             }
             

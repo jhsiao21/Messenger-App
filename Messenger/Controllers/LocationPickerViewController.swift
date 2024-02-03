@@ -9,13 +9,13 @@ import UIKit
 import CoreLocation
 import MapKit
 
-class LocationPickerViewController: UIViewController {
+final class LocationPickerViewController: UIViewController {
     
     public var completion: ((CLLocationCoordinate2D) -> Void)?
     
     private var coordinates: CLLocationCoordinate2D?
     
-    public var isPickable : Bool = true
+    private var isPickable : Bool = true
 
     private let mapView: MKMapView = {
         let map = MKMapView()
@@ -27,6 +27,7 @@ class LocationPickerViewController: UIViewController {
     init(coordinates: CLLocationCoordinate2D?) {
         self.coordinates = coordinates
 //        self.isPickable = false
+        self.isPickable = coordinates == nil //如果沒有座標資訊，表示user要選
         super.init(nibName: nil, bundle: nil)
     }
     

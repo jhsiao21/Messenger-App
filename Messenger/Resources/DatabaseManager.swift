@@ -10,9 +10,13 @@ import FirebaseDatabase
 import MessageKit
 import CoreLocation.CLLocation
 
+/// Manage object to read and write data to real time firebase database
 final class DatabaseManager {
     
-    static let shared = DatabaseManager()
+    /// Shared instance of class
+    public static let shared = DatabaseManager()
+    
+    private init() {}
     
     private let database = Database.database().reference()
     
@@ -21,11 +25,10 @@ final class DatabaseManager {
 //        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
         return safeEmail
     }
-    
 }
 
 extension DatabaseManager {
-    
+    /// Returns dictionary node at child path
     public func getDataFor(path: String, completion: @escaping (Result<Any, Error>) -> Void) {
         database.child("\(path)").observeSingleEvent(of: .value) { snapshot in
             guard let value = snapshot.value else {
@@ -41,13 +44,16 @@ extension DatabaseManager {
 //MARK: - Account Management
 extension DatabaseManager {
     
-    public func userExists(with email: String, 
+    /// Checks if user exists for given email
+    /// - 'email':              Target email to be checked
+    /// - 'completion':     Async closure to return with result
+    public func userExists(with email: String,
                            completion: @escaping ((Bool) -> Void)) {
         
         var safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         
         //firebase database allows you to observe value changes on any entry in your NoSql database by specifying the child that you want to observe for and specifying what type of observation you want, so we only want to observe a single event which in other words is basically query the database once
-        database.child(safeEmail).observeSingleEvent(of: .value) { snapshot in
+        database.child(safeEmail).observeSingleEvent(of: .value) { snapshot in //檢查Realtime database是否已經有該email節點
 //            guard snapshot.value as? String != nil else {
 //                print(snapshot.value as? String)
             guard snapshot.value as? [String: Any] != nil else {
@@ -66,7 +72,12 @@ extension DatabaseManager {
         database.child(user.safeEmail).setValue([
             "first_name": user.firstName,
             "last_name": user.lastName
-        ]) { error, _ in
+        ]) { [weak self] error, _ in
+            
+            guard let strongSelf = self else {
+                return
+            }
+            
             guard error == nil else {
                 print("failed to write to database")
                 completion(false)
@@ -89,7 +100,7 @@ extension DatabaseManager {
             
             //add it to array of users
             
-            self.database.child("users").observeSingleEvent(of: .value) { snapshot in
+            strongSelf.database.child("users").observeSingleEvent(of: .value) { snapshot in
                 //check first if that collection exists
                 if var usersCollection = snapshot.value as? [[String : String]] {   //if it does we can append
                     //append to user dictionary
@@ -101,7 +112,7 @@ extension DatabaseManager {
                     ]
                     usersCollection.append(contentsOf: newElement)  //the prefix of usersCollection is var, because we want it to be mutable so we can append more contents
                     
-                    self.database.child("users").setValue(usersCollection) { error, _ in
+                    strongSelf.database.child("users").setValue(usersCollection) { error, _ in
                         guard error == nil else {
                             completion(false)
                             return
@@ -120,7 +131,7 @@ extension DatabaseManager {
                     ]
                     
                     //建立users節點
-                    self.database.child("users").setValue(newCollection) { error, _ in
+                    strongSelf.database.child("users").setValue(newCollection) { error, _ in
                         guard error == nil else {
                             completion(false)
                             return
@@ -133,6 +144,7 @@ extension DatabaseManager {
         }
     }
     
+    /// Gets all users from database
     public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
         database.child("users").observeSingleEvent(of: .value) { snapshot in
             guard let value = snapshot.value as? [[String: String]] else {
