@@ -1,15 +1,8 @@
-//
-//  Extensions.swift
-//  Messenger
-//
-//  Created by LoganMacMini on 2024/1/25.
-//
-
 import Foundation
 import UIKit
 
 extension UIView {
-    
+     
     public var width: CGFloat {
         return frame.size.width
     }
@@ -23,18 +16,16 @@ extension UIView {
     }
     
     public var bottom: CGFloat {
-        return frame.size.height + frame.origin.y
+        return frame.height + frame.origin.y
     }
     
     public var left: CGFloat {
         return frame.origin.x
     }
-    
     public var right: CGFloat {
-        return frame.size.width + frame.origin.x
+        return frame.width + frame.origin.x
     }
 }
 
-extension Notification.Name {
-    static let didLogInNotification = Notification.Name("didLogInNotification")
-}
+
+

@@ -43,6 +43,14 @@ final class ConversationsViewController: UIViewController {
         view.addSubview(noConversationsLabel)
         setupTableView()
         startListeningForConversations()
+        
+        loginObserver = NotificationCenter.default.addObserver(forName: .didLogInNotification, object: nil, queue: .main, using: { [weak self] _ in
+            guard let strongSelf = self else {
+                return
+            }
+
+            strongSelf.startListeningForConversations()
+        })
     }
     
     private func startListeningForConversations() {
@@ -51,6 +59,7 @@ final class ConversationsViewController: UIViewController {
             return
         }
         
+        // 因為每次在TabBar按其他頁籤都會觸發validateAuth() else內的post didLogInNotification，加這行是為了startListeningForConversations只近來一次，在第一次收到didLogInNotification通知後便移除didLogInNotification觀察
         if let observer = loginObserver {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -155,6 +164,10 @@ final class ConversationsViewController: UIViewController {
             let nav = UINavigationController(rootViewController: vc)
             nav.modalPresentationStyle = .fullScreen
             present(nav, animated: false)
+        }
+        else {
+            //登入後發送didLogInNotification通知
+            NotificationCenter.default.post(name: .didLogInNotification, object: nil)
         }
     }
     

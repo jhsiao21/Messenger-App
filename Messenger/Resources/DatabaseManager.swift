@@ -398,6 +398,7 @@ extension DatabaseManager {
     public func getAllConversations(for email: String, completion: @escaping (Result<[Conversation], Error>) -> Void) {
         //observe方法通常用於設置一個持續的監聽器，以便當數據發生變化時接收更新。這意味著每當匹配的數據發生改變時，監聽器都會被觸發
         database.child("\(email)/conversations").observe(.value) { snapshot in
+            
             guard let value = snapshot.value as? [[String: Any]] else {
                 completion(.failure(DatabaseError.failedToFetch))
                 return

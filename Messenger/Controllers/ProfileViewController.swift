@@ -13,6 +13,8 @@ import SDWebImage
 
 final class ProfileViewController: UIViewController {
     
+    var imageView: UIImageView?
+    
     var data = [ProfileViewModel]()
     
     private let tableView: UITableView = {
@@ -75,7 +77,8 @@ final class ProfileViewController: UIViewController {
         
         layout()
         tableViewSetup()
-        // Do any additional setup after loading the view.
+        
+        
     }
     
     private func tableViewSetup() {
@@ -111,6 +114,12 @@ final class ProfileViewController: UIViewController {
         imageView.layer.borderWidth = 3
         imageView.layer.cornerRadius = imageView.width / 2
         imageView.layer.masksToBounds = true
+        let gesture = UITapGestureRecognizer(target: self,
+                                             action: #selector(didTapChangeProfilePicture))
+        imageView.addGestureRecognizer(gesture)
+        imageView.isUserInteractionEnabled = true
+        self.imageView = imageView
+                
         headerView.addSubview(imageView)
         
         StorageManager.shared.downloadURL(for: path) { result in
@@ -123,6 +132,11 @@ final class ProfileViewController: UIViewController {
         }
         
         return headerView
+    }
+    
+    @objc private func didTapChangeProfilePicture() {
+        print("Change pic called")
+        presentPhotoActionSheet()
     }
     
     private func layout() {
@@ -169,5 +183,75 @@ class ProfileTableViewCell: UITableViewCell {
             textLabel?.textColor = .red
             textLabel?.textAlignment = .center
         }
+    }
+}
+
+extension ProfileViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    func presentPhotoActionSheet() {
+        let actionSheet = UIAlertController(title: "Profile Picture",
+                                            message: "How would you like to select a pticure?",
+                                            preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Cancel",
+                                            style: .cancel,
+                                            handler: nil))
+        
+        actionSheet.addAction(UIAlertAction(title: "Take Photo",
+                                            style: .default,
+                                            handler: { [weak self] _ in
+            self?.presentCamera()
+        }))
+        
+        actionSheet.addAction(UIAlertAction(title: "Chose Photo",
+                                            style: .default,
+                                            handler: { [weak self] _ in
+            self?.presentPhotoPicker()
+        }))
+        
+        present(actionSheet, animated: true)
+    }
+    
+    func presentCamera() {
+        let vc = UIImagePickerController()
+        vc.sourceType = .camera
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    
+    func presentPhotoPicker() {
+        let vc = UIImagePickerController()
+        vc.sourceType = .photoLibrary
+        vc.delegate = self  //如果沒這行不會觸發didFinishPickingMediaWithInfo
+        vc.allowsEditing = true //對應：editedImage
+        present(vc, animated: true)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        picker.dismiss(animated: true, completion: nil) //?
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage,
+              let imageView = self.imageView else { return }
+        imageView.image = selectedImage
+        
+        guard let data = selectedImage.pngData(),
+              let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        let fileName = "\(safeEmail)_profile_picture.png"
+        StorageManager.shared.uploadProfilePicture(with: data,
+                                                   fileName: fileName) { result in
+            switch result {
+            case .success(let downloadUrl):
+                print(downloadUrl)
+            case .failure(let error):
+                print("Storage manager error: \(error)")
+            }
+        }
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
     }
 }

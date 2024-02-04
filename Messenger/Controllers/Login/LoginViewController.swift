@@ -301,6 +301,7 @@ final class LoginViewController: UIViewController {
                 }
                 
                 print("Successfully logged user in")
+//                NotificationCenter.default.post(name: .didLogInNotification, object: nil) //Add to validateAuth() else block
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
             }
         }
