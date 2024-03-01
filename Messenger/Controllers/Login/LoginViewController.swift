@@ -37,7 +37,7 @@ final class LoginViewController: UIViewController {
         field.layer.cornerRadius = 12
         field.layer.borderWidth = 1
         field.layer.borderColor = UIColor.lightGray.cgColor
-        field.placeholder = "Email Address..."
+        field.placeholder = "Enter your email"
         //leftView可以指定左邊的view內容，這裡指定一個空的UIView，寬度５
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
@@ -54,13 +54,25 @@ final class LoginViewController: UIViewController {
         field.layer.cornerRadius = 12
         field.layer.borderWidth = 1
         field.layer.borderColor = UIColor.lightGray.cgColor
-        field.placeholder = "Password..."
+        field.placeholder = "Enter your password"
         //leftView可以指定左邊的view內容，這裡指定一個空的UIView，寬度５
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
         field.backgroundColor = .secondarySystemBackground
         field.isSecureTextEntry = true
         return field
+    }()
+    
+    private let forgotPwdButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Forgot Passowrd?", for: .normal)
+        button.backgroundColor = .systemBackground
+        button.setTitleColor(.label, for: .normal)
+//        button.layer.cornerRadius = 3
+//        button.layer.masksToBounds = true
+        button.titleLabel?.font = UIFont.preferredFont(forTextStyle: .footnote)
+        button.addTarget(self, action: #selector(forgotPwdButtonTapped), for: .touchUpInside)
+        return button
     }()
     
     private let loginButton: UIButton = {
@@ -82,7 +94,9 @@ final class LoginViewController: UIViewController {
     
     private let googleLoginButton = GIDSignInButton()
     
-//    private var loginObserver: NSObjectProtocol?
+    @objc private func forgotPwdButtonTapped() {
+        
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -147,7 +161,7 @@ final class LoginViewController: UIViewController {
                                   width: scrollView.width - 60,
                                   height: 52)
         loginButton.frame = CGRect(x: 30,
-                                  y: passwordField.bottom + 10,
+                                  y: passwordField.bottom + 200,
                                   width: scrollView.width - 60,
                                   height: 52)
         facebookLoginButton.frame = CGRect(x: 30,
@@ -167,7 +181,8 @@ final class LoginViewController: UIViewController {
         passwordField.resignFirstResponder()
         
         guard let email = emailField.text, let password = passwordField.text, !email.isEmpty, !password.isEmpty, password.count >= 6 else {
-            alertUserLoginError()
+//            alertUserLoginError()
+            self.showUIAlert(message: "Please enter all information to login.")
             return
         }
         
@@ -182,7 +197,9 @@ final class LoginViewController: UIViewController {
             }
             
             guard let result = authResult, error == nil else {
-                print("Failed to log in user with email: \(email)")
+                let errorMsg = "Failed to log in user with email: \(email)"
+                print(errorMsg)
+                self?.showUIAlert(message: errorMsg)
                 return
             }
             
@@ -251,9 +268,10 @@ final class LoginViewController: UIViewController {
                     let chatUser = ChatAppUser(firstName: firstName,
                                                lastName: lastName,
                                                emailAddress: email)
-                    DatabaseManager.shared.insertUser(with: chatUser) { success in
-                        if success {
-                            
+                    DatabaseManager.shared.insertUser(with: chatUser) { [weak self] result in
+                        
+                        switch result {
+                        case .success(_):
                             //upload image
                             if hasImage {
                                 guard let url = user.profile?.imageURL(withDimension: 200) else {
@@ -282,6 +300,9 @@ final class LoginViewController: UIViewController {
                                     }
                                 }.resume()
                             }
+                        case .failure(let error):
+                            let errMsg = "Failed to get users, error: \(error.errorDescription)"
+                            self?.showUIAlert(message: errMsg)
                         }
                     }
                 }
@@ -403,9 +424,10 @@ extension LoginViewController : LoginButtonDelegate {
                     let chatUser = ChatAppUser(firstName: firstName,
                                                lastName: lastName,
                                                emailAddress: email)
-                    DatabaseManager.shared.insertUser(with: chatUser) { success in
-                        if success {
-                            
+                    DatabaseManager.shared.insertUser(with: chatUser) { [weak self] result in
+                        
+                        switch result {
+                        case .success(_):
                             guard let url = URL(string: pictureUrl) else {
                                 return
                             }
@@ -439,6 +461,9 @@ extension LoginViewController : LoginButtonDelegate {
                                     }
                                 }
                             }.resume()
+                        case .failure(let error):
+                            let errMsg = "Failed to get users, error: \(error.errorDescription)"
+                            self?.showUIAlert(message: errMsg)
                         }
                     }
                 }

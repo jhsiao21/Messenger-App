@@ -84,9 +84,10 @@ final class ConversationsViewController: UIViewController {
                 }
             case .failure(let error):
                 // if not able to get conversations, hide tableview and show label
-                self?.tableView.isHidden = true
                 self?.noConversationsLabel.isHidden = false
-                print("Failed to get convos: \(error.localizedDescription)")
+                self?.tableView.isHidden = true
+                self?.showUIAlert(message: "Failed to get conversations: \(error.errorDescription)")
+//                print("Failed to get conversations: \(error.localizedDescription)")
             }
         }
     }
@@ -218,19 +219,28 @@ extension ConversationsViewController: UITableViewDelegate, UITableViewDataSourc
         if editingStyle == .delete {
             // begin delete
             let conversationId = conversations[indexPath.row].id
-            
-            tableView.beginUpdates()
-            conversations.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .left)
-            
-            DatabaseManager.shared.deleteConversation(conversationId: conversationId) { success in
-                if !success { //沒有網路時就會失敗
-                    /// add model and row back and show error alert
-                    print("Failed to delete conversation with ID: \(conversationId)")
+
+            DatabaseManager.shared.deleteConversation(conversationId: conversationId) { [weak self] result in
+                switch result {
+                case .success(_):
+                    //there's no need of following code, cuz tableview data source is based on observe, which is a continous observe
+//                    tableView.beginUpdates()
+//                    conversations.remove(at: indexPath.row)
+//                    tableView.deleteRows(at: [indexPath], with: .left)
+//                    tableView.endUpdates()
+//                    self?.tableView.reloadData()
+                    break
+                case .failure(let error):
+                    if let error = error as? DatabaseManager.DatabaseResponse {
+                        let errMsg = "Failed to delete conversation with ID: \(conversationId), errorMsg: \(error.errorDescription)"
+                        self?.showUIAlert(message: errMsg)
+                    } else {
+                        self?.showUIAlert(message: error.localizedDescription)
+                    }
                 }
             }
             
-            tableView.endUpdates()
+            
         }
     }
     

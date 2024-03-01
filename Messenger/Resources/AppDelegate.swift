@@ -39,7 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             sourceApplication: options[UIApplication.OpenURLOptionsKey.sourceApplication] as? String,
             annotation: options[UIApplication.OpenURLOptionsKey.annotation]
         )
-        //這面這些是facebook的
+        //上面這些是facebook的
         
         //此方法應呼叫GIDSignIn實例的handleURL方法，該方法將正確處理應用程式在驗證過程結束時收到的 URL。
         return GIDSignIn.sharedInstance.handle(url)

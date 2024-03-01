@@ -13,6 +13,8 @@ import CoreLocation.CLLocation
 /// Manage object to read and write data to real time firebase database
 final class DatabaseManager {
     
+    let timeoutInterval = 8.0
+    
     /// Shared instance of class
     public static let shared = DatabaseManager()
     
@@ -32,7 +34,7 @@ extension DatabaseManager {
     public func getDataFor(path: String, completion: @escaping (Result<Any, Error>) -> Void) {
         database.child("\(path)").observeSingleEvent(of: .value) { snapshot in
             guard let value = snapshot.value else {
-                completion(.failure(DatabaseError.failedToFetch))
+                completion(.failure(DatabaseResponse.failedToFetch))
                 return
             }
             
@@ -67,12 +69,21 @@ extension DatabaseManager {
     }
     
     //Inserts new user to database
-    public func insertUser(with user: ChatAppUser, completion: @escaping (Bool) -> Void) {
+    public func insertUser(with user: ChatAppUser, completion: @escaping (Result<Bool, DatabaseResponse>) -> Void) {
+        
+        let timeoutAction = DispatchWorkItem {
+            completion(.failure(DatabaseResponse.timeout))
+        }
+
+        // 在超時時間後執行超時操作
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeoutInterval, execute: timeoutAction)
+        
         //once we insert a new user we make the route entry and then we make sure it didn't fail
         database.child(user.safeEmail).setValue([
             "first_name": user.firstName,
             "last_name": user.lastName
         ]) { [weak self] error, _ in
+            timeoutAction.cancel()
             
             guard let strongSelf = self else {
                 return
@@ -80,10 +91,9 @@ extension DatabaseManager {
             
             guard error == nil else {
                 print("failed to write to database")
-                completion(false)
+                completion(.failure(DatabaseResponse.failedToWrite))
                 return
             }
-            
             
             /*
              users => [
@@ -99,8 +109,8 @@ extension DatabaseManager {
              */
             
             //add it to array of users
-            
             strongSelf.database.child("users").observeSingleEvent(of: .value) { snapshot in
+                
                 //check first if that collection exists
                 if var usersCollection = snapshot.value as? [[String : String]] {   //if it does we can append
                     //append to user dictionary
@@ -114,11 +124,11 @@ extension DatabaseManager {
                     
                     strongSelf.database.child("users").setValue(usersCollection) { error, _ in
                         guard error == nil else {
-                            completion(false)
+                            completion(.failure(DatabaseResponse.failedToWrite))
                             return
                         }
                         
-                        completion(true)
+                        completion(.success(true))
                     }
                 }
                 else {                                                              //if it doesn't we need to create it
@@ -133,10 +143,10 @@ extension DatabaseManager {
                     //建立users節點
                     strongSelf.database.child("users").setValue(newCollection) { error, _ in
                         guard error == nil else {
-                            completion(false)
+                            completion(.failure(DatabaseResponse.failedToWrite))
                             return
                         }
-                        completion(true)
+                        completion(.success(true))
                     }
                 }
             }
@@ -145,10 +155,19 @@ extension DatabaseManager {
     }
     
     /// Gets all users from database
-    public func getAllUsers(completion: @escaping (Result<[[String: String]], Error>) -> Void) {
+    public func getAllUsers(completion: @escaping (Result<[[String: String]], DatabaseResponse>) -> Void) {
+        
+        let timeoutAction = DispatchWorkItem {
+            completion(.failure(DatabaseResponse.timeout))
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeoutInterval, execute: timeoutAction)
+        
         database.child("users").observeSingleEvent(of: .value) { snapshot in
+            timeoutAction.cancel()
+            
             guard let value = snapshot.value as? [[String: String]] else {
-                completion(.failure(DatabaseError.failedToFetch))
+                completion(.failure(DatabaseResponse.failedToFetch))
                 return
             }
             
@@ -156,8 +175,24 @@ extension DatabaseManager {
         }
     }
     
-    public enum DatabaseError: Error {
+    public enum DatabaseResponse: Error {
         case failedToFetch
+        case failedToWrite
+        case timeout
+        case notFound
+        
+        public var errorDescription: String {
+            switch self {
+            case .failedToFetch:
+                return NSLocalizedString("Unable to fetch data.", comment: "Failed to Fetch")
+            case .timeout:
+                return NSLocalizedString("The request timed out.", comment: "Time Out")
+            case .failedToWrite:
+                return NSLocalizedString("The operation couldn’t be completed.", comment: "Failed Operation")
+            case .notFound:
+                return NSLocalizedString("The requested item was not found.", comment: "Not Found")
+            }
+        }
     }
 }
 
@@ -217,25 +252,9 @@ extension DatabaseManager {
             
             switch firstMessage.kind {
                 
-            case .text(let MessageText):
-                message = MessageText
-            case .attributedText(_):
-                break
-            case .photo(_):
-                break
-            case .video(_):
-                break
-            case .location(_):
-                break
-            case .emoji(_):
-                break
-            case .audio(_):
-                break
-            case .contact(_):
-                break
-            case .linkPreview(_):
-                break
-            case .custom(_):
+            case .text(let messageText):
+                message = messageText
+            case .attributedText(_), .photo(_), .video(_), .location(_), .emoji(_), .audio(_), .contact(_),.custom(_), .linkPreview(_):
                 break
             }
             
@@ -326,25 +345,9 @@ extension DatabaseManager {
         
         switch firstMessage.kind {
             
-        case .text(let MessageText):
-            message = MessageText
-        case .attributedText(_):
-            break
-        case .photo(_):
-            break
-        case .video(_):
-            break
-        case .location(_):
-            break
-        case .emoji(_):
-            break
-        case .audio(_):
-            break
-        case .contact(_):
-            break
-        case .linkPreview(_):
-            break
-        case .custom(_):
+        case .text(let messageText):
+            message = messageText
+        case .attributedText(_), .photo(_), .video(_), .location(_), .emoji(_), .audio(_), .contact(_),.custom(_), .linkPreview(_):
             break
         }
         
@@ -395,12 +398,20 @@ extension DatabaseManager {
     }
     
     /// Fetches and returns all conversations for the user with passed in email
-    public func getAllConversations(for email: String, completion: @escaping (Result<[Conversation], Error>) -> Void) {
+    public func getAllConversations(for email: String, completion: @escaping (Result<[Conversation], DatabaseResponse>) -> Void) {
+        
+        let timeoutAction = DispatchWorkItem {
+            completion(.failure(DatabaseResponse.timeout))
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeoutInterval, execute: timeoutAction)
+        
         //observe方法通常用於設置一個持續的監聽器，以便當數據發生變化時接收更新。這意味著每當匹配的數據發生改變時，監聽器都會被觸發
         database.child("\(email)/conversations").observe(.value) { snapshot in
+            timeoutAction.cancel()
             
             guard let value = snapshot.value as? [[String: Any]] else {
-                completion(.failure(DatabaseError.failedToFetch))
+                completion(.failure(DatabaseResponse.failedToFetch))
                 return
             }
             
@@ -434,7 +445,7 @@ extension DatabaseManager {
         //observe方法通常用於設置一個持續的監聽器，以便當數據發生變化時接收更新。這意味著每當匹配的數據發生改變時，監聽器都會被觸發
         database.child("\(id)/messages").observe(.value) { snapshot in
             guard let value = snapshot.value as? [[String: Any]] else {
-                completion(.failure(DatabaseError.failedToFetch))
+                completion(.failure(DatabaseResponse.failedToFetch))
                 return
             }
             
@@ -706,11 +717,18 @@ extension DatabaseManager {
         }
     }
     
-    public func deleteConversation(conversationId: String, completion: @escaping (Bool) -> Void) {
+    public func deleteConversation(conversationId: String, completion: @escaping (Result<Bool, DatabaseResponse>) -> Void) {
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
             return
         }
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        
+        let timeoutAction = DispatchWorkItem {
+            completion(.failure(DatabaseResponse.timeout))
+            return
+        }
+        
+        DispatchQueue.global().asyncAfter(deadline: .now() + self.timeoutInterval, execute: timeoutAction)
         
         print("Deleting conversation with id: \(conversationId)")
         
@@ -718,27 +736,32 @@ extension DatabaseManager {
         // delete conversation in collection with target id
         // reset those conversations for the user in database
         let ref = database.child("\(safeEmail)/conversations")
-        ref.observeSingleEvent(of: .value) { snapshot in
+        ref.observeSingleEvent(of: .value) { snapshot  in
+            // 如果數據檢索成功或失敗，取消超時操作
+            timeoutAction.cancel()
+            
             if var conversations = snapshot.value as? [[String: Any]] {
-                var positionToRemove = 0
-                for conversation in conversations {
-                    if let id = conversation["id"] as? String, id == conversationId {
-                        print("Found conversation to delete")
-                        break
-                    }
-                    positionToRemove += 1
-                }
                 
-                conversations.remove(at: positionToRemove)
-                ref.setValue(conversations) { error, _ in
-                    guard error == nil else {
-                        completion(false)
-                        print("Failed to write new conversation array")
-                        return
-                    }
+                //search target index of conversation in conversations with conversationId
+                if let positionToRemove = conversations.firstIndex(where: {
+                    $0["id"] as? String == conversationId }) {
                     
-                    print("Deleted conversation")
-                    completion(true)
+                    //remove conversation with target index
+                    conversations.remove(at: positionToRemove)
+                    ref.setValue(conversations) { error, _ in
+                        guard error == nil else {
+                            print("Failed to write new conversation array")
+                            completion(.failure(DatabaseResponse.failedToWrite))
+                            return
+                        }
+                        
+                        print("Deleted conversation")
+                        completion(.success(true))
+                    }
+                }
+                else {
+                    print("Conversation ID not found")
+                    completion(.failure(DatabaseResponse.notFound))
                 }
             }
         }
@@ -756,7 +779,7 @@ extension DatabaseManager {
         //從接收對象節點
         database.child("\(safeRecieientEmail)/conversations").observeSingleEvent(of: .value) { snapshot in
             guard let collection = snapshot.value as? [[String: Any]] else {
-                completion(.failure(DatabaseError.failedToFetch))
+                completion(.failure(DatabaseResponse.failedToFetch))
                 return
             }
             
@@ -769,14 +792,14 @@ extension DatabaseManager {
             }) {
                 // get id
                 guard let id = conversation["id"] as? String else {
-                    completion(.failure(DatabaseError.failedToFetch))
+                    completion(.failure(DatabaseResponse.failedToFetch))
                     return
                 }
                 completion(.success(id))
                 return
             }
             
-            completion(.failure(DatabaseError.failedToFetch))
+            completion(.failure(DatabaseResponse.failedToFetch))
             return
         }
         

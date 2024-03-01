@@ -21,10 +21,10 @@ extension String {
     func passwordValidation() -> Bool {
         let passwordRegularExpression =
         // At least 8 characters
-        #"(?=.{8,})"# +
+        #"(?=.{8,})"#
         
         // At least one digit
-        #"(?=.*\d)"#
+//        #"(?=.*\d)"#
         
         // so result is a Range<String.Index>
         let result = self.range(

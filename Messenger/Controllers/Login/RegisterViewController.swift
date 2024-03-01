@@ -235,7 +235,7 @@ final class RegisterViewController: UIViewController {
                 strongSelf.correctPassword = true
             }
             else {
-                self?.passwordValidationLabel.text = "At least 8 characters and 1 digit!"
+                self?.passwordValidationLabel.text = "At least 8 characters"
                 strongSelf.correctPassword = false
             }
         }
@@ -322,7 +322,7 @@ final class RegisterViewController: UIViewController {
               !password.isEmpty,
               password.count >= 6 else {
 //            alertUserLoginError()
-            self.showAlert(title: "Oops!", message: "Please enter all information to create a new account", actionTitle: "Dismiss")
+            self.showUIAlert(message: "Please enter all information to create a new account")
             return
         }
         
@@ -330,7 +330,7 @@ final class RegisterViewController: UIViewController {
               correctPassword == true,
               samePassword == true else {
 //            print("can not register")
-            self.showAlert(title: "Oops!", message: "Can not register", actionTitle: "Dismiss")
+            self.showUIAlert(message: "Can not register")
             return
         }
         
@@ -364,8 +364,10 @@ final class RegisterViewController: UIViewController {
                 let chatUser = ChatAppUser(firstName: firstName,
                                            lastName: lastName,
                                            emailAddress: email)
-                DatabaseManager.shared.insertUser(with: chatUser) { success in
-                    if success {
+                DatabaseManager.shared.insertUser(with: chatUser) { result in
+                    
+                    switch result {
+                    case .success(_):
                         //upload image
                         guard let image = strongSelf.imageView.image,
                               let data = image.pngData() else {
@@ -382,6 +384,9 @@ final class RegisterViewController: UIViewController {
                                 print("Storage manager error: \(error)")
                             }
                         }
+                    case .failure(let error):
+                        let errMsg = "Failed to get users, error: \(error.errorDescription)"
+                        self?.showUIAlert(message: errMsg)
                     }
                 }
                 

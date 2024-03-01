@@ -102,8 +102,13 @@ extension NewConversationViewController: UISearchBarDelegate {
                     self?.hasFetched = true
                     self?.users = usersCollection
                     self?.filterUsers(with: query)
-                case .failure(let failure):
-                    print("Failed to get users: \(failure)")
+                    
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self?.spinner.dismiss()
+                    }
+                    let errMsg = "Failed to get users, error: \(error.errorDescription)"
+                    self?.showUIAlert(message: errMsg)
                 }
             }
         }

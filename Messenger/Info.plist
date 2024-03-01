@@ -19,23 +19,23 @@
 			<string>Editor</string>
 		</dict>
 	</array>
+    <key>FacebookAppID</key>
+    <string>718468540383079</string>
+    <key>FacebookClientToken</key>
+    <string>2e06b77069fd191b97eb47a4357ad70c</string>
+    <key>FacebookDisplayName</key>
+    <string>My Messenger</string>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>fbapi</string>
+        <string>fb-messenger-share-api</string>
+    </array>
 	<key>NSCameraUsageDescription</key>
 	<string>Please allow access to take a profile picture</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Please allow access to select a photo for your profile.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Please allow access to send audio and video messages.</string>
-	<key>FacebookAppID</key>
-	<string>718468540383079</string>
-	<key>FacebookClientToken</key>
-	<string>2e06b77069fd191b97eb47a4357ad70c</string>
-	<key>FacebookDisplayName</key>
-	<string>My Messenger</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>fbapi</string>
-		<string>fb-messenger-share-api</string>
-	</array>
+	<string>Please allow access to send audio and video messages.</string>	
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
